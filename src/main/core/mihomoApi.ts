@@ -108,7 +108,7 @@ export const mihomoGroups = async (): Promise<IMihomoMixedGroup[]> => {
     }
   }
 
-  // 全局模式只保留GLOBAL
+  // 全局模式只保留GLOBAL组
   if (mode === 'global') {
     return groups.filter(g => g.name === 'GLOBAL')
   }

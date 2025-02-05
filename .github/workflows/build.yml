@@ -2,7 +2,7 @@ name: Build
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - v*
     paths-ignore:
@@ -176,9 +176,157 @@ jobs:
           body_path: changelog.md
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x64
+          - arm64
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        run: npm install -g pnpm
+      - name: Install Dependencies
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+          npm_config_target_arch: ${{ matrix.arch }}
+        run: |
+          pnpm install
+          pnpm add @mihomo-party/sysproxy-darwin-${{ matrix.arch }}
+          pnpm prepare --${{ matrix.arch }}
+      - name: Build
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+          npm_config_target_arch: ${{ matrix.arch }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: |
+          chmod +x build/pkg-scripts/postinstall
+          pnpm build:mac --${{ matrix.arch }}
+      - name: Setup temporary installer signing keychain
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.CSC_INSTALLER_LINK }}
+          p12-password: ${{ secrets.CSC_INSTALLER_KEY_PASSWORD }}
+      - name: Sign the Apple pkg
+        run: |
+          for pkg_name in $(ls -1 dist/*.pkg); do
+            pkg_name=$(ls -1 dist/*.pkg)
+            mv $pkg_name Unsigned-Workbench.pkg
+            productsign --sign "Developer ID Installer: Prometheus Advertising Corp (489PDK5LP3)" Unsigned-Workbench.pkg $pkg_name
+            rm -f Unsigned-Workbench.pkg
+            xcrun notarytool submit $pkg_name --apple-id $APPLE_ID --team-id $APPLE_TEAM_ID --password $APPLE_APP_SPECIFIC_PASSWORD --wait
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Generate checksums
+        run: pnpm checksum .pkg
+      - name: Upload Artifacts
+        if: startsWith(github.ref, 'refs/heads/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacOS ${{ matrix.arch }}
+          path: |
+            dist/*.sha256
+            dist/*.pkg
+          if-no-files-found: error
+      - name: Publish Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.sha256
+            dist/*.pkg
+          body_path: changelog.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  macos10:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x64
+          - arm64
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        run: npm install -g pnpm
+      - name: Install Dependencies
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+          npm_config_target_arch: ${{ matrix.arch }}
+        run: |
+          pnpm install
+          pnpm add @mihomo-party/sysproxy-darwin-${{ matrix.arch }}
+          pnpm add -D electron@32.2.2
+          pnpm prepare --${{ matrix.arch }}
+      - name: Build
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+          npm_config_target_arch: ${{ matrix.arch }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: |
+          sed -i "" -e "s/macos/catalina/" electron-builder.yml
+          chmod +x build/pkg-scripts/postinstall
+          pnpm build:mac --${{ matrix.arch }}
+      - name: Setup temporary installer signing keychain
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.CSC_INSTALLER_LINK }}
+          p12-password: ${{ secrets.CSC_INSTALLER_KEY_PASSWORD }}
+      - name: Sign the Apple pkg
+        run: |
+          for pkg_name in $(ls -1 dist/*.pkg); do
+            pkg_name=$(ls -1 dist/*.pkg)
+            mv $pkg_name Unsigned-Workbench.pkg
+            productsign --sign "Developer ID Installer: Prometheus Advertising Corp (489PDK5LP3)" Unsigned-Workbench.pkg $pkg_name
+            rm -f Unsigned-Workbench.pkg
+            xcrun notarytool submit $pkg_name --apple-id $APPLE_ID --team-id $APPLE_TEAM_ID --password $APPLE_APP_SPECIFIC_PASSWORD --wait
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Generate checksums
+        run: pnpm checksum .pkg
+      - name: Upload Artifacts
+        if: startsWith(github.ref, 'refs/heads/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: Catalina ${{ matrix.arch }}
+          path: |
+            dist/*.sha256
+            dist/*.pkg
+          if-no-files-found: error
+      - name: Publish Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.sha256
+            dist/*.pkg
+          body_path: changelog.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   updater:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [windows, windows7]
+    needs: [windows, macos, windows7, macos10]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -221,14 +369,14 @@ jobs:
       - name: Update Checksums
         if: matrix.pkgname == 'mihomo-party' || matrix.pkgname == 'mihomo-party-electron'
         run: |
-          wget https://github.com/Ananaskop/mihomo-party/archive/refs/tags/$(echo ${{ github.ref }} | tr -d 'refs/tags/').tar.gz -O release.tar.gz
+          wget https://github.com/mihomo-party-org/mihomo-party/archive/refs/tags/$(echo ${{ github.ref }} | tr -d 'refs/tags/').tar.gz -O release.tar.gz
           sed -i "s/sha256sums=.*/sha256sums=(\"$(sha256sum ./release.tar.gz | awk '{print $1}')\"/" aur/mihomo-party/PKGBUILD
           sed -i "s/sha256sums=.*/sha256sums=(\"$(sha256sum ./release.tar.gz | awk '{print $1}')\"/" aur/mihomo-party-electron/PKGBUILD
       - name: Update Checksums
         if: matrix.pkgname == 'mihomo-party-bin' || matrix.pkgname == 'mihomo-party-electron-bin'
         run: |
-          wget https://github.com/Ananaskop/mihomo-party/releases/download/$(echo ${{ github.ref }} | tr -d 'refs/tags/')/mihomo-party-linux-$(echo ${{ github.ref }} | tr -d 'refs/tags/v')-amd64.deb -O amd64.deb
-          wget https://github.com/Ananaskop/mihomo-party/releases/download/$(echo ${{ github.ref }} | tr -d 'refs/tags/')/mihomo-party-linux-$(echo ${{ github.ref }} | tr -d 'refs/tags/v')-arm64.deb -O arm64.deb
+          wget https://github.com/mihomo-party-org/mihomo-party/releases/download/$(echo ${{ github.ref }} | tr -d 'refs/tags/')/mihomo-party-linux-$(echo ${{ github.ref }} | tr -d 'refs/tags/v')-amd64.deb -O amd64.deb
+          wget https://github.com/mihomo-party-org/mihomo-party/releases/download/$(echo ${{ github.ref }} | tr -d 'refs/tags/')/mihomo-party-linux-$(echo ${{ github.ref }} | tr -d 'refs/tags/v')-arm64.deb -O arm64.deb
           sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum ./amd64.deb | awk '{print $1}')\")/" aur/mihomo-party-bin/PKGBUILD
           sed -i "s/sha256sums_aarch64=.*/sha256sums_aarch64=(\"$(sha256sum ./arm64.deb | awk '{print $1}')\")/" aur/mihomo-party-bin/PKGBUILD
           sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum ./amd64.deb | awk '{print $1}')\")/" aur/mihomo-party-electron-bin/PKGBUILD
