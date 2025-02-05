@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'fs'
 const pkg = readFileSync('package.json', 'utf-8')
 let changelog = readFileSync('changelog.md', 'utf-8')
 const { version } = JSON.parse(pkg)
-const downloadUrl = `https://github.com/mihomo-party-org/mihomo-party/releases/download/v${version}`
+const downloadUrl = `https://github.com/Ananaskop/mihomo-party/releases/download/v${version}`
 const latest = {
   version,
   changelog

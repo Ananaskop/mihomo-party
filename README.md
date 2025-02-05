@@ -6,7 +6,7 @@
 <h3 align="center">Another <a href="https://github.com/MetaCubeX/mihomo">Mihomo</a> GUI</h3>
 
 <p align="center">
-  <a href="https://github.com/mihomo-party-org/mihomo-party/releases">
+  <a href="https://github.com/Ananaskop/mihomo-party/releases">
     <img src="https://img.shields.io/github/release/mihomo-party-org/mihomo-party/all.svg">
   </a>
   <a href="https://t.me/mihomo_party_group">

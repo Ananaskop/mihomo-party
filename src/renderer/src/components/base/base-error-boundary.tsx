@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 const ErrorFallback = ({ error }: FallbackProps): JSX.Element => {
   const { t } = useTranslation()
-  
+
   return (
     <div className="p-4">
       <h2 className="my-2 text-lg font-bold">
@@ -16,7 +16,7 @@ const ErrorFallback = ({ error }: FallbackProps): JSX.Element => {
         size="sm"
         color="primary"
         variant="flat"
-        onPress={() => open('https://github.com/mihomo-party-org/mihomo-party/issues/new/choose')}
+        onPress={() => open('https://github.com/Ananaskop/mihomo-party/issues/new/choose')}
       >
         GitHub
       </Button>
