@@ -269,7 +269,7 @@ const resolveEnableLoopback = () =>
 const resolveSysproxy = () =>
   resolveResource({
     file: 'sysproxy.exe',
-    downloadURL: `https://github.com/Ananaskop/sysproxy/releases/download/${arch}/sysproxy.exe`
+    downloadURL: `https://github.com/mihomo-party-org/sysproxy/releases/download/${arch}/sysproxy.exe`
   })
 const resolveRunner = () =>
   resolveResource({
