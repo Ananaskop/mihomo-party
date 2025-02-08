@@ -362,6 +362,7 @@
   "resources.proxyProviders.title": "Proxy Providers",
   "resources.proxyProviders.updateAll": "Update All",
   "resources.ruleProviders.title": "Rule Providers",
+  "resources.ruleProviders.updateAll": "Update All",
   "outbound.title": "Outbound Mode",
   "outbound.modes.rule": "Rule",
   "outbound.modes.global": "Global",

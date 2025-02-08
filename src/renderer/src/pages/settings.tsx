@@ -39,22 +39,10 @@ const Settings: React.FC = () => {
             className="app-nodrag"
             title={t('settings.links.github')}
             onPress={() => {
-              window.open('https://github.com/mihomo-party-org/mihomo-party')
+              window.open('https://github.com/Ananaskop/mihomo-party')
             }}
           >
             <IoLogoGithub className="text-lg" />
-          </Button>
-          <Button
-            isIconOnly
-            size="sm"
-            variant="light"
-            className="app-nodrag"
-            title={t('settings.links.telegram')}
-            onPress={() => {
-              window.open('https://t.me/mihomo_party_group')
-            }}
-          >
-            <FaTelegramPlane className="text-lg" />
           </Button>
         </>
       }
