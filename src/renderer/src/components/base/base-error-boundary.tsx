@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 const ErrorFallback = ({ error }: FallbackProps): JSX.Element => {
   const { t } = useTranslation()
-
+  
   return (
     <div className="p-4">
       <h2 className="my-2 text-lg font-bold">

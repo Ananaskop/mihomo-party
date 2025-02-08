@@ -15,13 +15,15 @@ import { MdEditDocument } from 'react-icons/md'
 import dayjs from '@renderer/utils/dayjs'
 import { calcTraffic } from '@renderer/utils/calc'
 import { getHash } from '@renderer/utils/hash'
-
+import { useTranslation } from 'react-i18next'
 const ProxyProvider: React.FC = () => {
+  const { t } = useTranslation()
   const [showDetails, setShowDetails] = useState({
     show: false,
     path: '',
     type: '',
-    title: ''
+    title: '',
+    privderType: ''
   })
   useEffect(() => {
     if (showDetails.title) {
@@ -48,6 +50,16 @@ const ProxyProvider: React.FC = () => {
   const providers = useMemo(() => {
     if (!data) return []
     return Object.values(data.providers)
+      .map(provider => {
+        if (provider.vehicleType === 'Inline' || provider.vehicleType === 'File') {
+          return {
+            ...provider,
+            subscriptionInfo: null
+          }
+        }
+        return provider
+      })
+
       .filter(provider => 'subscriptionInfo' in provider)
       .sort((a, b) => {
         if (a.vehicleType === 'File' && b.vehicleType !== 'File') {
@@ -90,10 +102,11 @@ const ProxyProvider: React.FC = () => {
           path={showDetails.path}
           type={showDetails.type}
           title={showDetails.title}
-          onClose={() => setShowDetails({ show: false, path: '', type: '', title: '' })}
+          privderType={showDetails.privderType}
+          onClose={() => setShowDetails({ show: false, path: '', type: '', title: '', privderType: '' })}
         />
       )}
-      <SettingItem title="代理集合" divider>
+      <SettingItem title={t('resources.proxyProviders.title')} divider>
         <Button
           size="sm"
           color="primary"
@@ -103,7 +116,7 @@ const ProxyProvider: React.FC = () => {
             })
           }}
         >
-          更新全部
+          {t('resources.proxyProviders.updateAll')}
         </Button>
       </SettingItem>
       {providers.map((provider, index) => (
@@ -124,12 +137,13 @@ const ProxyProvider: React.FC = () => {
               </Button> */}
               <Button
                 isIconOnly
-                title={provider.vehicleType == 'File' ? '编辑' : '查看'}
+                title={provider.vehicleType == 'File' ? t('common.editor.edit') : t('common.viewer.view')}
                 className="ml-2"
                 size="sm"
                 onPress={() => {
                   setShowDetails({
                     show: false,
+                    privderType: 'proxy-providers',
                     path: provider.name,
                     type: provider.vehicleType,
                     title: provider.name
@@ -144,7 +158,7 @@ const ProxyProvider: React.FC = () => {
               </Button>
               <Button
                 isIconOnly
-                title="更新"
+                title={t('common.updater.update')}
                 className="ml-2"
                 size="sm"
                 onPress={() => {
@@ -169,7 +183,7 @@ const ProxyProvider: React.FC = () => {
               <div className="h-[32px] leading-[32px] text-foreground-500">
                 {provider.subscriptionInfo.Expire
                   ? dayjs.unix(provider.subscriptionInfo.Expire).format('YYYY-MM-DD')
-                  : '长期有效'}
+                  : t('profiles.neverExpire')}
               </div>
             </SettingItem>
           )}

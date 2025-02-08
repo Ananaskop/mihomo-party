@@ -39,7 +39,7 @@ const Settings: React.FC = () => {
             className="app-nodrag"
             title={t('settings.links.github')}
             onPress={() => {
-              window.open('https://github.com/Ananaskop/mihomo-party')
+              window.open('https://github.com/mihomo-party-org/mihomo-party')
             }}
           >
             <IoLogoGithub className="text-lg" />
