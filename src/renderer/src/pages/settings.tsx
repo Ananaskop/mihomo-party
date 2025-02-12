@@ -24,18 +24,6 @@ const Settings: React.FC = () => {
             isIconOnly
             size="sm"
             variant="light"
-            title={t('settings.links.docs')}
-            className="app-nodrag"
-            onPress={() => {
-              window.open('https://mihomo.party')
-            }}
-          >
-            <CgWebsite className="text-lg" />
-          </Button>
-          <Button
-            isIconOnly
-            size="sm"
-            variant="light"
             className="app-nodrag"
             title={t('settings.links.github')}
             onPress={() => {
