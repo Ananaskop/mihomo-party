@@ -20,6 +20,15 @@ const ErrorFallback = ({ error }: FallbackProps): JSX.Element => {
       >
         GitHub
       </Button>
+      <Button
+        size="sm"
+        color="primary"
+        variant="flat"
+        className="ml-2"
+        onPress={() => open('https://t.me/mihomo_party_group')}
+      >
+        Telegram
+      </Button>
 
       <Button
         size="sm"
